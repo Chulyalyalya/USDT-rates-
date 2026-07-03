@@ -1,0 +1,15 @@
+# Конфигурация Netlify
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# Красивый путь /api/rates -> функция rates
+[[redirects]]
+  from = "/api/rates"
+  to = "/.netlify/functions/rates"
+  status = 200
+
+# Node 18+ нужен для глобального fetch в функциях
+[functions]
+  node_bundler = "esbuild"

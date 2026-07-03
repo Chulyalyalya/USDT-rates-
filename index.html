@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Курсовой терминал · USD/RUB · USDT/RUB</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+<style>
+/* ================= ДИЗАЙН-ТОКЕНЫ ================= */
+:root{
+  --bg:#eef1fb; --bg-2:#e8ebf8;
+  --panel:#ffffff; --panel-2:#f6f7fe;
+  --line:#e1e4f4; --line-soft:#edeffb;
+  --txt:#171a33; --txt-2:#4b5080; --txt-3:#868bba;
+  --violet:#6a58f5; --violet-2:#7d6bff; --violet-glow:#6a58f533;
+  --cyan:#1fb6c4; --up:#12a860; --down:#e5445c; --flat:#9aa0c8;
+  --warn:#e08a1e; --err:#e5445c; --ok:#12a860; --stale:#9aa0c8;
+  --r-lg:20px; --r-md:14px; --r-sm:10px;
+  --shadow:0 16px 34px -24px #4a3fb033, 0 0 0 1px var(--line) inset;
+  --grid:#1a1f4014; --tick:#7b80ad;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  --sans:"Manrope",system-ui,sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font-family:var(--sans); color:var(--txt); background:
+    radial-gradient(1100px 620px at 82% -8%, #c9c2ff55, transparent 60%),
+    radial-gradient(900px 600px at 4% 4%, #d5e0ff66, transparent 55%),
+    var(--bg);
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer}
+::selection{background:var(--violet-glow)}
+
+/* ================= ВХОД ================= */
+#login{
+  position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;
+  background:
+    radial-gradient(700px 500px at 50% 8%, #cfc7ff66, transparent 60%),
+    var(--bg);
+}
+.login-card{
+  width:min(400px,100%);background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border-radius:26px;box-shadow:var(--shadow);padding:38px 34px 34px;position:relative;overflow:hidden;
+}
+.login-card::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:150px;
+  background:linear-gradient(180deg,var(--violet-glow),transparent);pointer-events:none;
+}
+.brand{display:flex;align-items:center;gap:12px;position:relative}
+.mark{
+  width:44px;height:44px;border-radius:13px;display:grid;place-items:center;flex:0 0 auto;
+  background:linear-gradient(145deg,var(--violet),#5b47e0);box-shadow:0 10px 24px -8px var(--violet-glow);
+  font-weight:800;color:#fff;font-size:20px;letter-spacing:-1px;
+}
+.brand h1{margin:0;font-size:19px;font-weight:800;letter-spacing:-.4px}
+.brand p{margin:2px 0 0;font-size:12.5px;color:var(--txt-3);letter-spacing:.2px}
+.login-logo{position:relative;display:flex;justify-content:center;margin-top:4px}
+.login-logo img{width:min(240px,72%);height:auto;display:block;
+  filter:drop-shadow(0 8px 20px #6a58f52e)}
+.login-sub{text-align:center;margin-top:14px;font-size:12.5px;font-weight:600;
+  letter-spacing:.3px;color:var(--txt-3)}
+.login-lead{margin:26px 0 8px;font-size:13.5px;color:var(--txt-2)}
+.pin-wrap{position:relative;margin-top:6px}
+#pin{
+  width:100%;height:60px;border-radius:16px;border:1px solid var(--line);
+  background:var(--bg-2);color:var(--txt);font-family:var(--mono);font-size:26px;font-weight:700;
+  letter-spacing:12px;text-align:center;padding:0 16px;outline:none;transition:.18s;
+}
+#pin::placeholder{letter-spacing:6px;color:var(--txt-3);font-weight:400}
+#pin:focus{border-color:var(--violet);box-shadow:0 0 0 4px var(--violet-glow)}
+.login-card.err #pin{border-color:var(--err);box-shadow:0 0 0 4px #ff5f7433;animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.hint{min-height:18px;font-size:12px;margin:9px 2px 0;color:var(--txt-3)}
+.hint.bad{color:var(--err)}
+.btn-primary{
+  width:100%;height:52px;margin-top:16px;border:none;border-radius:15px;color:#fff;font-size:15px;font-weight:700;
+  background:linear-gradient(145deg,var(--violet),#5b47e0);box-shadow:0 14px 30px -12px var(--violet-glow);transition:.15s;
+}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-primary:active{transform:translateY(1px)}
+.login-note{margin-top:16px;font-size:11px;line-height:1.5;color:var(--txt-3);text-align:center}
+
+/* ================= КАРКАС ================= */
+#app{display:none;max-width:1440px;margin:0 auto;padding:20px 22px 90px}
+.topbar{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:14px 18px;border-radius:var(--r-lg);background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  box-shadow:var(--shadow);position:sticky;top:12px;z-index:40;
+}
+.topbar .brand h1{font-size:16px}
+.topbar .brand p{font-size:11px}
+.spacer{flex:1 1 auto}
+.seg{display:inline-flex;background:var(--bg-2);border:1px solid var(--line);border-radius:12px;padding:4px;gap:2px}
+.seg button{
+  border:none;background:transparent;color:var(--txt-2);font-size:13px;font-weight:600;
+  padding:8px 15px;border-radius:9px;transition:.15s;white-space:nowrap;
+}
+.seg button.on{background:var(--violet);color:#fff;box-shadow:0 8px 18px -8px var(--violet-glow)}
+.seg.buysell button.on[data-mode="sell"]{background:var(--down)}
+.seg small{display:block;font-size:9.5px;font-weight:600;opacity:.7;letter-spacing:.4px}
+.icon-btn{
+  width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--bg-2);
+  color:var(--txt-2);font-size:17px;display:grid;place-items:center;transition:.15s;
+}
+.icon-btn:hover{color:var(--txt);border-color:var(--violet)}
+
+.section-title{
+  display:flex;align-items:center;gap:10px;margin:26px 4px 12px;font-size:12px;font-weight:700;
+  letter-spacing:1.4px;text-transform:uppercase;color:var(--txt-3);
+}
+.section-title .bar{width:16px;height:2px;border-radius:2px;background:var(--violet)}
+.section-title .count{
+  margin-left:auto;font-weight:600;letter-spacing:0;text-transform:none;color:var(--txt-3);font-size:12px;
+}
+
+/* ================= АНАЛИТИКА ================= */
+.summary{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:4px;
+}
+.stat{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));border-radius:var(--r-md);
+  padding:13px 15px;box-shadow:0 0 0 1px var(--line) inset;position:relative;overflow:hidden;
+}
+.stat .k{font-size:11px;color:var(--txt-3);font-weight:600;letter-spacing:.2px}
+.stat .v{font-family:var(--mono);font-size:19px;font-weight:700;margin-top:5px;letter-spacing:-.5px}
+.stat.accent{background:linear-gradient(150deg,#efeaff,#f6f4ff);box-shadow:0 0 0 1px #cbc0ff inset}
+.stat.accent .v{color:var(--violet)}
+.stat .sub{font-size:11px;color:var(--txt-3);margin-top:2px;font-family:var(--sans)}
+
+/* ================= АРБИТРАЖ ================= */
+.arb{
+  margin-top:12px;padding:16px 20px;border-radius:var(--r-lg);display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  background:linear-gradient(135deg,#e4f7ec,#e7f0ff);box-shadow:0 0 0 1px #b6e6cc inset;
+}
+.arb.none{background:linear-gradient(135deg,#f4f5fe,#eef1fb);box-shadow:0 0 0 1px var(--line) inset}
+.arb .tag{
+  font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#0e8f52;
+  background:#d0f0dd;padding:6px 11px;border-radius:8px;
+}
+.arb.none .tag{color:var(--txt-3);background:var(--bg-2)}
+.arb .main{color:#0e8f52}
+.arb .main{font-family:var(--mono);font-size:20px;font-weight:700}
+.arb .desc{font-size:12.5px;color:var(--txt-2);max-width:520px}
+
+/* ================= ФИЛЬТРЫ ================= */
+.filters{
+  margin-top:6px;padding:16px 18px;border-radius:var(--r-lg);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));box-shadow:var(--shadow);
+  display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;
+}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;font-weight:600;color:var(--txt-3);letter-spacing:.3px}
+.field input[type=date],.field input[type=time]{
+  height:42px;border-radius:11px;border:1px solid var(--line);background:var(--bg-2);color:var(--txt);
+  font-family:var(--mono);font-size:14px;padding:0 12px;outline:none;color-scheme:light;
+}
+.field input:focus{border-color:var(--violet);box-shadow:0 0 0 3px var(--violet-glow)}
+.chk{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--txt-2);height:42px;cursor:pointer;user-select:none}
+.chk input{width:18px;height:18px;accent-color:var(--violet)}
+.filter-btns{display:flex;gap:9px;flex-wrap:wrap;margin-left:auto}
+.btn{
+  height:42px;padding:0 16px;border-radius:11px;font-size:13px;font-weight:600;border:1px solid var(--line);
+  background:var(--bg-2);color:var(--txt-2);transition:.15s;
+}
+.btn:hover{color:var(--txt);border-color:var(--violet)}
+.btn.solid{background:var(--violet);border-color:transparent;color:#fff}
+.btn.solid:hover{filter:brightness(1.08)}
+
+/* ================= КАРТОЧКИ ================= */
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:12px;margin-top:4px;
+}
+.card{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));border-radius:var(--r-lg);padding:15px 16px 14px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .12s, box-shadow .15s;
+  cursor:grab;
+}
+.card:hover{box-shadow:0 18px 40px -26px #4a3fb03d, 0 0 0 1px var(--violet) inset}
+.card.sortable-ghost{opacity:.4}
+.card.sortable-chosen{cursor:grabbing;transform:scale(1.015)}
+.card.dead{opacity:.62}
+.card .strip{position:absolute;left:0;top:0;bottom:0;width:4px}
+.card-head{display:flex;align-items:center;gap:9px;margin-left:6px}
+.dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;box-shadow:0 0 0 3px #0003}
+.dot.ok{background:var(--ok);animation:pulse 2s infinite}
+.dot.err{background:var(--err)}
+.dot.nodata{background:var(--txt-3)}
+.dot.delay{background:var(--warn)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 #31d07f66}50%{box-shadow:0 0 0 5px #31d07f00}}
+.card .name{font-weight:700;font-size:15px;letter-spacing:-.2px}
+.src-ico{flex:0 0 auto;display:block;box-shadow:0 2px 6px -2px #0003}
+.leg .src-ico{margin-right:1px}
+.card .pair{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--txt-3);
+  background:var(--bg-2);padding:3px 8px;border-radius:7px;border:1px solid var(--line)}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0 4px 6px;min-height:20px}
+.badge{font-size:10px;font-weight:700;letter-spacing:.3px;padding:3px 8px;border-radius:7px;text-transform:uppercase}
+.badge.ref{background:#efeaff;color:#6a58f5}
+.badge.official{background:#e4f1ff;color:#2076c9}
+.badge.buy{background:#e3f6ec;color:#12a860}
+.badge.sell{background:#fdeaee;color:#e5445c}
+.badge.demo{background:#fff3e0;color:#c8791a}
+.rate-row{display:flex;align-items:flex-end;gap:10px;margin:6px 0 0 6px}
+.rate{font-family:var(--mono);font-size:30px;font-weight:700;letter-spacing:-1px;line-height:1}
+.rate .cur{font-size:15px;color:var(--txt-3);font-weight:500}
+.chg{font-family:var(--mono);font-size:13px;font-weight:700;padding-bottom:4px;display:flex;align-items:center;gap:3px}
+.chg.up{color:var(--up)} .chg.down{color:var(--down)} .chg.flat{color:var(--flat)}
+.flash-up{animation:fu .6s} .flash-down{animation:fd .6s}
+@keyframes fu{0%{color:var(--up)}100%{}}
+@keyframes fd{0%{color:var(--down)}100%{}}
+.meta{display:flex;justify-content:space-between;align-items:center;margin:12px 0 0 6px;
+  padding-top:10px;border-top:1px solid var(--line-soft)}
+.dev{font-size:11.5px;color:var(--txt-2)}
+.dev b{font-family:var(--mono);font-weight:700}
+.dev.pos b{color:var(--up)} .dev.neg b{color:var(--down)}
+.fresh{font-size:11px;color:var(--txt-3);display:flex;align-items:center;gap:5px;font-family:var(--mono)}
+.fresh.stale{color:var(--warn)}
+.status-txt{font-size:11px;color:var(--txt-3);margin:8px 0 0 6px;font-family:var(--mono)}
+.status-txt.err{color:var(--err)}
+
+/* ================= ГРАФИК ================= */
+.chart-wrap{
+  margin-top:4px;background:linear-gradient(180deg,var(--panel-2),var(--panel));border-radius:var(--r-lg);
+  padding:16px 18px;box-shadow:var(--shadow);
+}
+.chart-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.chart-tools .btn{height:34px;padding:0 12px;font-size:12px}
+.legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.leg{
+  display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:9px;font-size:12px;font-weight:600;
+  background:var(--bg-2);border:1px solid var(--line);color:var(--txt-2);transition:.15s;user-select:none;
+}
+.leg:hover{border-color:var(--violet)}
+.leg.off{opacity:.4}
+.leg .sw{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+.leg .star{font-size:12px;color:var(--txt-3);margin-left:2px}
+.leg.fav .star{color:var(--warn)}
+.canvas-box{position:relative;height:430px;margin-top:6px}
+
+/* ================= ПЛАВАЮЩАЯ КНОПКА ================= */
+#toFilters{
+  position:fixed;right:22px;bottom:22px;z-index:50;height:48px;padding:0 20px;border-radius:26px;
+  border:none;color:#fff;font-weight:700;font-size:13.5px;display:none;align-items:center;gap:8px;
+  background:linear-gradient(145deg,var(--violet),#5b47e0);box-shadow:0 16px 34px -12px var(--violet-glow);
+}
+#toFilters:hover{filter:brightness(1.08)}
+
+.foot{text-align:center;color:var(--txt-3);font-size:11px;margin-top:30px;line-height:1.6}
+@media (max-width:640px){
+  .rate{font-size:26px}
+  .topbar{position:static}
+  .canvas-box{height:340px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== ВХОД ===================== -->
+<div id="login">
+  <div class="login-card" id="loginCard">
+    <div class="login-logo"><img src="xlink-logo.png" alt="X-Link" /></div>
+    <div class="login-sub">Курсовой терминал · USD/RUB · USDT/RUB</div>
+    <div class="login-lead">Введите числовой пароль для входа</div>
+    <div class="pin-wrap">
+      <input id="pin" inputmode="numeric" autocomplete="off" placeholder="• • • • •" maxlength="24" />
+    </div>
+    <div class="hint" id="pinHint"></div>
+    <button class="btn-primary" id="loginBtn">Войти</button>
+    <div class="login-note">Сессия завершается при обновлении или закрытии вкладки.<br>Настройки дашборда сохраняются.</div>
+  </div>
+</div>
+
+<!-- ===================== ПРИЛОЖЕНИЕ ===================== -->
+<div id="app">
+  <!-- Верхняя панель -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark" style="width:38px;height:38px;font-size:17px">₽</div>
+      <div>
+        <h1>Курсовой терминал</h1>
+        <p id="lastGlobal"><span id="clockNow">--:--:--</span> · обновлено <span id="clockUpd">…</span></p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+
+    <div class="seg buysell" id="modeSeg">
+      <button data-mode="buy" class="on">Покупка</button>
+      <button data-mode="sell">Продажа</button>
+    </div>
+
+    <div class="seg" id="pairSeg">
+      <button data-pair="all" class="on">Все пары</button>
+      <button data-pair="USD/RUB">USD/RUB</button>
+      <button data-pair="USDT/RUB">USDT/RUB</button>
+    </div>
+
+    <button class="icon-btn" id="logoutBtn" title="Выйти">⎋</button>
+  </div>
+
+  <!-- Аналитическая сводка -->
+  <div class="section-title"><span class="bar"></span>Сводка</div>
+  <div class="summary" id="summary"></div>
+
+  <!-- Арбитраж -->
+  <div class="arb none" id="arb"></div>
+
+  <!-- Фильтры -->
+  <div class="section-title" id="filtersAnchor"><span class="bar"></span>Фильтры</div>
+  <div class="filters">
+    <div class="field">
+      <label>Дата (день / месяц / год)</label>
+      <input type="date" id="fDate" />
+    </div>
+    <div class="field">
+      <label>Время (часы : минуты : секунды)</label>
+      <input type="time" id="fTime" step="1" />
+    </div>
+    <label class="chk"><input type="checkbox" id="fActive" /> Только активные источники</label>
+    <div class="filter-btns">
+      <button class="btn solid" id="applyF">Применить фильтр</button>
+      <button class="btn" id="resetF">Сбросить фильтры</button>
+    </div>
+  </div>
+
+  <!-- Дашборд -->
+  <div class="section-title"><span class="bar"></span>Источники курсов<span class="count">удерживайте карточку, чтобы поменять порядок</span></div>
+  <div class="grid" id="grid"></div>
+
+  <!-- График -->
+  <div class="section-title"><span class="bar"></span>Динамика курсов</div>
+  <div class="chart-wrap">
+    <div class="chart-tools">
+      <button class="btn" id="selAll">Показать все</button>
+      <button class="btn" id="selNone">Скрыть все</button>
+      <button class="btn" id="selFav">Только избранные</button>
+      <div class="spacer" style="flex:1"></div>
+      <button class="btn" id="zoomReset">Сбросить масштаб</button>
+    </div>
+    <div class="canvas-box"><canvas id="chart"></canvas></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="foot">
+    Реальные данные: ЦБ РФ (официальный курс), Binance и Bybit (P2P-курсы USDT/RUB покупка/продажа), рыночный ориентир USD/RUB.
+    Источники с бейджем «демо» пока привязаны к реальным якорям, но не имеют собственного публичного API.<br>
+    Каждый источник — отдельный модуль на сервере (Netlify Functions); сбой одного не ломает остальные.
+    При открытии файла локально (без сервера) сайт автоматически переходит в демо-симуляцию.
+  </div>
+</div>
+
+<button id="toFilters">↥ Вернуться к фильтрам</button>
+
+<!-- ===================== БИБЛИОТЕКИ ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script src="config.js"></script>
+
+<script>
+"use strict";
+/* ============================================================
+   0. УТИЛИТЫ И ХРАНИЛИЩЕ СОСТОЯНИЯ
+   ============================================================ */
+const CFG = window.APP_CONFIG;
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const fmt=n=> n.toLocaleString("ru-RU",{minimumFractionDigits:2,maximumFractionDigits:2});
+const nowSec=()=>Math.floor(Date.now()/1000);
+
+async function sha256(str){
+  const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+// Настройки, ПЕРЕЖИВАЮЩИЕ обновление страницы (но не авторизацию)
+const DEFAULT_STATE={
+  mode:"buy", pair:"all", theme:"dark",
+  chartOn:null,            // {id:true/false}
+  favorites:{},            // {id:true}
+  cardOrder:null,          // [id,...]
+  colors:null,             // {id:hex} — постоянные цвета линий
+  filter:{date:"",time:"",activeOnly:false,applied:false,touched:false},
+};
+function loadState(){
+  try{const raw=localStorage.getItem(CFG.storageKey);
+    if(!raw) return structuredClone(DEFAULT_STATE);
+    return Object.assign(structuredClone(DEFAULT_STATE),JSON.parse(raw));
+  }catch(e){return structuredClone(DEFAULT_STATE);}
+}
+function saveState(){ try{localStorage.setItem(CFG.storageKey,JSON.stringify(state));}catch(e){} }
+let state=loadState();
+
+/* ============================================================
+   1. ОПИСАНИЕ ИСТОЧНИКОВ + ПОСТОЯННЫЕ ЦВЕТА
+   kind: "both"=есть покупка/продажа, "ref"=справочный, "official"=офиц. курс ЦБ
+   ============================================================ */
+// цвета читаемы на светлом фоне и различимы между собой
+const PALETTE=["#6a58f5","#128f83","#e0701e","#2a8f4d","#d43f8a","#b07d00",
+               "#2f7fd1","#8a4fd6","#c0392b","#5a8f2a","#0f8ea8","#a05ad0"];
+const CBR_BASE=77.93; // ориентир по официальному курсу ЦБ РФ
+const SOURCES=[
+  {id:"investing", name:"Investing",   pair:"USD/RUB",  kind:"ref",      base:77.62},
+  {id:"tokenspot", name:"TokenSpot",   pair:"USDT/RUB", kind:"both",     base:78.55},
+  {id:"alansary",  name:"Alansary",    pair:"USD/RUB",  kind:"both",     base:78.05},
+  {id:"cbr",       name:"Курс ЦБ РФ",  pair:"USD/RUB",  kind:"official", base:77.93, real:true},
+  {id:"profinance",name:"Profinance",  pair:"USD/RUB",  kind:"ref",      base:77.71},
+  {id:"tradingview",name:"TradingView",pair:"USDT/RUB", kind:"ref",      base:78.42},
+  {id:"bybit",     name:"Bybit",       pair:"USDT/RUB", kind:"both",     base:78.68},
+  {id:"binance",   name:"Binance",     pair:"USDT/RUB", kind:"both",     base:78.60},
+  {id:"coinbase",  name:"Coinbase",    pair:"USDT/RUB", kind:"both",     base:79.05},
+  {id:"cryptocom", name:"Crypto.com",  pair:"USDT/RUB", kind:"both",     base:78.83},
+  {id:"gate",      name:"Gate",        pair:"USDT/RUB", kind:"both",     base:78.74},
+  {id:"mex",       name:"MEX",         pair:"USDT/RUB", kind:"both",     base:78.88},
+];
+const byId=Object.fromEntries(SOURCES.map(s=>[s.id,s]));
+
+/* ---- иконки источников (встроенный SVG, без внешних запросов) ---- */
+const BRAND={
+  investing:{bg:"#F05A28",fg:"#fff"},
+  tokenspot:{bg:"#6C5CE7",fg:"#fff"},
+  alansary:{bg:"#0E9F6E",fg:"#fff"},
+  cbr:{bg:"#0A2A66",fg:"#fff"},
+  profinance:{bg:"#2D9CDB",fg:"#fff"},
+  tradingview:{bg:"#2962FF",fg:"#fff"},
+  bybit:{bg:"#F7A600",fg:"#17181A"},
+  binance:{bg:"#F3BA2F",fg:"#17181A"},
+  coinbase:{bg:"#0052FF",fg:"#fff"},
+  cryptocom:{bg:"#0B1E3F",fg:"#fff"},
+  gate:{bg:"#2354E6",fg:"#fff"},
+  mex:{bg:"#00B897",fg:"#fff"},
+};
+// особые глифы для узнаваемых площадок
+const GLYPH={
+  binance:`<g transform="rotate(45 12 12)" fill="#17181A">
+    <rect x="9.6" y="4.2" width="4.8" height="4.8" rx="1"/><rect x="4.2" y="9.6" width="4.8" height="4.8" rx="1"/>
+    <rect x="15" y="9.6" width="4.8" height="4.8" rx="1"/><rect x="9.6" y="15" width="4.8" height="4.8" rx="1"/>
+    <rect x="9.6" y="9.6" width="4.8" height="4.8" rx="1"/></g>`,
+  coinbase:`<circle cx="12" cy="12" r="6.4" fill="none" stroke="#fff" stroke-width="2.4"/>
+    <rect x="9.4" y="10.6" width="5.2" height="2.8" rx="1" fill="#0052FF"/>`,
+  cbr:`<text x="12" y="16.4" text-anchor="middle" font-size="13" font-weight="800" fill="#fff" font-family="Manrope,sans-serif">₽</text>`,
+  tradingview:`<g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round">
+    <path d="M6 15 L10 11 L13.5 13.5 L18 8"/></g><circle cx="18" cy="8" r="1.7" fill="#fff"/>`,
+  investing:`<g fill="#fff"><rect x="6" y="10" width="2.4" height="7" rx="1"/><rect x="10.8" y="7" width="2.4" height="10" rx="1"/><rect x="15.6" y="12" width="2.4" height="5" rx="1"/></g>`,
+};
+function iconSVG(id,size=24){
+  const b=BRAND[id]||{bg:"#6a58f5",fg:"#fff"};
+  const label=(byId[id]?.name?.replace(/[^A-Za-zА-Яа-я]/,"")[0]||"?").toUpperCase();
+  const inner=GLYPH[id]||`<text x="12" y="16.3" text-anchor="middle" font-size="12" font-weight="800" fill="${b.fg}" font-family="Manrope,sans-serif">${label}</text>`;
+  return `<svg class="src-ico" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true">
+    <rect x="0" y="0" width="24" height="24" rx="7" fill="${b.bg}"/>${inner}</svg>`;
+}
+
+// постоянные цвета (сохраняются между обновлениями)
+if(!state.colors){
+  state.colors={}; SOURCES.forEach((s,i)=>state.colors[s.id]=PALETTE[i%PALETTE.length]);
+}
+// значения по умолчанию для включённых линий / порядка
+if(!state.chartOn){ state.chartOn={}; SOURCES.forEach(s=>state.chartOn[s.id]=true); }
+if(!state.cardOrder){ state.cardOrder=SOURCES.map(s=>s.id); }
+saveState();
+
+/* ============================================================
+   2. ЖИВЫЕ ДАННЫЕ ИСТОЧНИКОВ (по модулю на каждый)
+   ============================================================ */
+// runtime-состояние каждого источника
+const live={};
+SOURCES.forEach(s=>{
+  const spread = s.kind==="both" ? rnd(0.18,0.55) : 0;
+  live[s.id]={
+    buy:null, sell:null, ref:s.base, prevShown:null, real:false,
+    status:"nodata", updated:0, spreadPct:spread, hist:[],
+  };
+});
+
+// сид истории — ~80 точек назад по времени, чтобы график не был пустым
+(function seedHistory(){
+  const n=80, step=7000, t0=Date.now()-n*step;
+  SOURCES.forEach(s=>{
+    let v=s.base; const L=live[s.id];
+    for(let i=0;i<n;i++){
+      v+= rnd(-0.09,0.09); const t=t0+i*step;
+      const sp=v*L.spreadPct/100;
+      L.hist.push({t, buy:v-sp/2, sell:v+sp/2, ref:v});
+    }
+    const last=L.hist[L.hist.length-1];
+    L.buy=last.buy; L.sell=last.sell; L.ref=last.ref;
+    L.status="active"; L.updated=Date.now();
+  });
+})();
+
+// --- РЕАЛЬНЫЙ модуль: курс ЦБ РФ ---
+async function fetchCBR(){
+  const r=await fetch("https://www.cbr-xml-daily.ru/daily_json.js");
+  if(!r.ok) throw new Error("cbr http "+r.status);
+  const j=await r.json();
+  const usd=j?.Valute?.USD?.Value;
+  if(!usd) throw new Error("cbr no usd");
+  return usd; // официальный курс, один
+}
+
+// --- СИМУЛЯТОРНЫЙ модуль для остальных источников ---
+function simTick(s){
+  const L=live[s.id];
+  // случайные сбои, но каждый — только в своей карточке
+  const roll=Math.random();
+  if(roll<0.03){ L.status="error";   return; }
+  if(roll<0.05){ L.status="nodata";  return; }
+  if(roll<0.09){ L.status="delay";   return; } // задержка: значение старое
+  const drift=rnd(-0.12,0.12);
+  const mid=(L.ref||s.base)+drift;
+  const sp=mid*L.spreadPct/100;
+  L.ref=mid;
+  if(s.kind==="both"){ L.buy=mid-sp/2; L.sell=mid+sp/2; }
+  else { L.buy=mid; L.sell=mid; }
+  L.status="active"; L.updated=Date.now();
+  L.hist.push({t:Date.now(),buy:L.buy,sell:L.sell,ref:L.ref});
+  if(L.hist.length>CFG.historyLimit) L.hist.shift();
+}
+
+// при первой реальной загрузке ЦБ сдвигаем симулируемые источники к настоящему курсу,
+// сохраняя относительные отступы (P2P-премию крипты и т.п.)
+let anchored=false;
+let lastRefresh=0;
+function reanchor(usd){
+  const delta=usd-CBR_BASE;
+  if(Math.abs(delta)<0.01){ anchored=true; return; }
+  SOURCES.forEach(s=>{
+    if(s.id==="cbr") return;
+    const L=live[s.id];
+    if(L.buy!=null) L.buy+=delta;
+    if(L.sell!=null) L.sell+=delta;
+    if(L.ref!=null) L.ref+=delta;
+    if(L.prevShown!=null) L.prevShown+=delta;
+    L.hist.forEach(h=>{ h.buy+=delta; h.sell+=delta; h.ref+=delta; });
+  });
+  anchored=true;
+}
+
+// режим данных: null=не проверяли, true=реальный бэкенд, false=локальная симуляция
+let backendMode=null;
+
+// применяем ответ /api/rates к живому состоянию
+function applyBackend(j){
+  const t=(j&&j.ts)||Date.now();
+  SOURCES.forEach(s=>{
+    const L=live[s.id];
+    const d=j.sources&&j.sources[s.id];
+    if(!d){ L.status="nodata"; return; }
+    L.real=!!d.real;
+    if(d.status!=="active" || d.ref==null){ L.status=d.status||"error"; return; }
+    L.buy=d.buy; L.sell=d.sell; L.ref=d.ref; L.status="active"; L.updated=t;
+    L.hist.push({t, buy:d.buy, sell:d.sell, ref:d.ref});
+    if(L.hist.length>CFG.historyLimit) L.hist.shift();
+  });
+}
+
+// основной цикл: пробуем реальный бэкенд, при недоступности — локальная симуляция
+async function refreshAll(){
+  if(backendMode!==false){
+    try{
+      const r=await fetch("/api/rates",{cache:"no-store"});
+      if(!r.ok) throw new Error("http "+r.status);
+      const j=await r.json();
+      applyBackend(j);
+      backendMode=true;
+      lastRefresh=Date.now(); render(); return;
+    }catch(e){
+      if(backendMode===true){
+        // бэкенд был доступен, но сейчас сбой — не падаем, показываем прежние данные
+        lastRefresh=Date.now(); render(); return;
+      }
+      // бэкенда нет (открыт локальный файл / нет Netlify Functions) — уходим в симуляцию
+      backendMode=false;
+    }
+  }
+  await localRefresh();
+  lastRefresh=Date.now(); render();
+}
+
+// локальная симуляция (офлайн-режим). У каждого источника свой «модуль», ошибки изолированы
+async function localRefresh(){
+  await Promise.allSettled(SOURCES.map(async s=>{
+    try{
+      if(s.real && s.id==="cbr"){
+        try{
+          const usd=await fetchCBR();
+          if(!anchored) reanchor(usd);
+          const L=live[s.id];
+          L.buy=usd; L.sell=usd; L.ref=usd; L.status="active"; L.updated=Date.now();
+          L.real=true;
+          L.hist.push({t:Date.now(),buy:usd,sell:usd,ref:usd});
+          if(L.hist.length>CFG.historyLimit) L.hist.shift();
+        }catch(_){
+          // реальный API недоступен — мягкий фолбэк на локальную симуляцию
+          simTick(s);
+        }
+      } else {
+        simTick(s);
+      }
+    }catch(err){
+      // сбой источника не ломает остальные — просто помечаем карточку
+      live[s.id].status="error";
+    }
+  }));
+}
+
+/* ============================================================
+   3. ВЫБОРКИ / РАСЧЁТЫ
+   ============================================================ */
+function shownValue(s){ // курс, показываемый с учётом режима
+  const L=live[s.id];
+  if(s.kind==="both") return state.mode==="buy"?L.buy:L.sell;
+  return L.ref; // ref / official — один курс
+}
+function pairVisible(s){ return state.pair==="all" || s.pair===state.pair; }
+function isActive(s){ return live[s.id].status==="active"; }
+function cbrRate(){ return live.cbr.ref; }
+
+function orderedSources(){
+  const order=state.cardOrder.filter(id=>byId[id]);
+  SOURCES.forEach(s=>{ if(!order.includes(s.id)) order.push(s.id); });
+  return order.map(id=>byId[id]);
+}
+function visibleSources(){
+  return orderedSources().filter(s=>{
+    if(!pairVisible(s)) return false;
+    if(state.filter.applied && state.filter.activeOnly && !isActive(s)) return false;
+    return true;
+  });
+}
+
+/* ============================================================
+   4. РЕНДЕР КАРТОЧЕК
+   ============================================================ */
+const gridEl=$("#grid");
+function fmtTime(ts){ if(!ts) return "—:—:—"; return new Date(ts).toLocaleTimeString("ru-RU"); }
+function freshLabel(upd){
+  if(!upd) return {t:"нет данных",stale:true};
+  const d=(Date.now()-upd)/1000;
+  if(d<5) return {t:"только что",stale:false};
+  if(d<60) return {t:`обновлено ${Math.floor(d)} сек назад`,stale:false};
+  if(d<1800) return {t:`обновлено ${Math.floor(d/60)} мин назад`,stale:false};
+  return {t:"данные устарели",stale:true};
+}
+const STATUS={
+  active:{cls:"ok",   txt:"активен"},
+  error:{cls:"err",   txt:"ошибка"},
+  nodata:{cls:"nodata",txt:"нет данных"},
+  delay:{cls:"delay", txt:"задержка обновления"},
+};
+
+function cardHTML(s){
+  const L=live[s.id], st=STATUS[L.status]||STATUS.nodata;
+  const color=state.colors[s.id];
+  const val=shownValue(s);
+  const dead=(L.status==="error"||L.status==="nodata");
+  const cur=s.pair.split("/")[0];
+
+  // изменение относительно предыдущего показанного значения
+  let chg="",chgCls="flat",arrow="→";
+  if(val!=null && L.prevShown!=null){
+    const d=val-L.prevShown;
+    if(Math.abs(d)<0.0005){chgCls="flat";arrow="→";chg="0.00";}
+    else if(d>0){chgCls="up";arrow="▲";chg="+"+fmt(d);}
+    else{chgCls="down";arrow="▼";chg=fmt(d);}
+  }
+
+  // бейджи
+  let badges="";
+  if(s.kind==="official") badges+=`<span class="badge official">официальный курс</span>`;
+  else if(s.kind==="ref") badges+=`<span class="badge ref">справочный курс</span>`;
+  else badges+=`<span class="badge ${state.mode}">${state.mode==="buy"?"покупка":"продажа"}</span>`;
+  if(L.real===false && s.id!=="cbr") badges+=`<span class="badge demo">демо</span>`;
+
+  // отклонение от ЦБ РФ
+  const cbr=cbrRate();
+  let devHTML="";
+  if(s.id!=="cbr" && val!=null && cbr){
+    const dr=val-cbr, dp=dr/cbr*100;
+    const cls=dr>0?"pos":(dr<0?"neg":"");
+    devHTML=`<div class="dev ${cls}">от ЦБ: <b>${dr>0?"+":""}${fmt(dr)} ₽</b> · <b>${dp>0?"+":""}${dp.toFixed(2)}%</b></div>`;
+  } else if(s.id==="cbr"){
+    devHTML=`<div class="dev">базовый ориентир</div>`;
+  }
+
+  const f=freshLabel(L.updated);
+  const valHTML = val!=null
+    ? `<div class="rate" data-rate="${s.id}">${fmt(val)}<span class="cur"> ₽/${cur}</span></div>`
+    : `<div class="rate" style="color:var(--txt-3)">— <span class="cur">нет</span></div>`;
+  const statusExtra = dead
+    ? `<div class="status-txt err">источник недоступен · показаны последние данные</div>`
+    : (L.status==="delay"?`<div class="status-txt">обновление задерживается</div>`:"");
+
+  return `
+  <div class="card ${dead?'dead':''}" data-id="${s.id}">
+    <div class="strip" style="background:${color}"></div>
+    <div class="card-head">
+      ${iconSVG(s.id)}
+      <span class="dot ${st.cls}"></span>
+      <span class="name">${s.name}</span>
+      <span class="pair">${s.pair}</span>
+    </div>
+    <div class="badges">${badges}</div>
+    <div class="rate-row">
+      ${valHTML}
+      <span class="chg ${chgCls}">${arrow} ${chg}</span>
+    </div>
+    ${statusExtra}
+    <div class="meta">
+      ${devHTML}
+      <div class="fresh ${f.stale?'stale':''}" data-fresh="${s.id}">● ${fmtTime(L.updated)} · ${f.t}</div>
+    </div>
+    <div class="status-txt" style="margin-top:6px;color:var(--${st.cls==='ok'?'ok':st.cls==='err'?'err':st.cls==='delay'?'warn':'txt-3'})">статус: ${st.txt}</div>
+  </div>`;
+}
+
+function renderCards(){
+  const list=visibleSources();
+  gridEl.innerHTML=list.map(cardHTML).join("");
+  // запомним показанное значение для расчёта следующего изменения
+  list.forEach(s=>{ const v=shownValue(s); if(v!=null) live[s.id].prevShown=v; });
+  // flash при смене
+  $$(".rate[data-rate]").forEach(el=>{
+    el.classList.remove("flash-up","flash-down");
+  });
+}
+
+/* сортировка карточек перетаскиванием */
+let sortable=null;
+function initSortable(){
+  if(sortable) sortable.destroy();
+  sortable=Sortable.create(gridEl,{
+    animation:160, delay:120, delayOnTouchOnly:true,
+    ghostClass:"sortable-ghost", chosenClass:"sortable-chosen",
+    onEnd(){
+      const ids=$$(".card",gridEl).map(c=>c.dataset.id);
+      // сохраняем порядок только видимых, дописывая скрытые в конец
+      const rest=state.cardOrder.filter(id=>!ids.includes(id));
+      state.cardOrder=[...ids,...rest]; saveState();
+    }
+  });
+}
+
+/* ============================================================
+   5. АНАЛИТИЧЕСКАЯ СВОДКА + АРБИТРАЖ
+   ============================================================ */
+function renderSummary(){
+  const vis=visibleSources().filter(s=>s.kind!=="official"); // рыночные
+  const buys=[], sells=[], mids=[];
+  vis.forEach(s=>{
+    const L=live[s.id];
+    if(L.buy!=null) buys.push(L.buy);
+    if(L.sell!=null) sells.push(L.sell);
+    const v=shownValue(s); if(v!=null) mids.push(v);
+  });
+  const cbr=cbrRate();
+  const bestBuy = buys.length?Math.min(...buys):null;   // выгоднее купить
+  const bestSell= sells.length?Math.max(...sells):null; // выгоднее продать
+  const avg = mids.length? mids.reduce((a,b)=>a+b,0)/mids.length : null;
+  const min = mids.length? Math.min(...mids):null;
+  const max = mids.length? Math.max(...mids):null;
+  const spread=(bestBuy!=null&&bestSell!=null)? bestSell-bestBuy : null;
+  const cbrDiff=(avg!=null&&cbr)? avg-cbr : null;
+  const activeN=visibleSources().filter(isActive).length;
+
+  const cell=(k,v,sub,accent)=>`<div class="stat ${accent?'accent':''}">
+     <div class="k">${k}</div><div class="v">${v}</div>${sub?`<div class="sub">${sub}</div>`:""}</div>`;
+  $("#summary").innerHTML=[
+    cell("Лучший курс покупки", bestBuy!=null?fmt(bestBuy)+" ₽":"—","минимальный курс"),
+    cell("Лучший курс продажи", bestSell!=null?fmt(bestSell)+" ₽":"—","максимальный курс"),
+    cell("Средний курс", avg!=null?fmt(avg)+" ₽":"—",`по ${mids.length} источникам`),
+    cell("Минимум", min!=null?fmt(min)+" ₽":"—"),
+    cell("Максимум", max!=null?fmt(max)+" ₽":"—"),
+    cell("Спред", spread!=null?fmt(spread)+" ₽":"—","покупка ↔ продажа"),
+    cell("ЦБ РФ vs рынок", cbrDiff!=null?(cbrDiff>0?"+":"")+fmt(cbrDiff)+" ₽":"—",cbr?`ЦБ ${fmt(cbr)} ₽`:""),
+    cell("Последнее обновление", fmtTime(lastRefresh||Date.now()),"общее по всем источникам"),
+    cell("Активных источников", activeN+" / "+visibleSources().length,"","accent"),
+  ].join("");
+
+  // арбитраж: max sell − min buy
+  const arb=$("#arb");
+  if(bestBuy!=null && bestSell!=null && (bestSell-bestBuy)>0){
+    const d=bestSell-bestBuy, p=d/bestBuy*100;
+    arb.className="arb";
+    arb.innerHTML=`<span class="tag">Возможности арбитража</span>
+      <span class="main">+${fmt(d)} ₽ · +${p.toFixed(2)}%</span>
+      <span class="desc">Разница между минимальным курсом покупки (${fmt(bestBuy)} ₽) и максимальным курсом продажи (${fmt(bestSell)} ₽).</span>`;
+  }else{
+    arb.className="arb none";
+    arb.innerHTML=`<span class="tag">Арбитраж</span>
+      <span class="desc">Прибыльной разницы между покупкой и продажей сейчас нет.</span>`;
+  }
+}
+
+/* ============================================================
+   6. ГРАФИК
+   ============================================================ */
+let chart=null;
+function chartDatasets(){
+  return SOURCES.filter(s=>pairVisible(s)).map(s=>{
+    const L=live[s.id];
+    const field = s.kind==="both" ? state.mode : "ref";
+    const data=L.hist.map(h=>({x:h.t, y:h[field]}));
+    return {
+      label:s.name, sourceId:s.id, data,
+      borderColor:state.colors[s.id],
+      backgroundColor:state.colors[s.id],
+      borderWidth:2, pointRadius:0, pointHoverRadius:5, tension:.3,
+      hidden: state.chartOn[s.id]===false,
+    };
+  });
+}
+function buildChart(){
+  const ctx=$("#chart");
+  chart=new Chart(ctx,{
+    type:"line",
+    data:{datasets:chartDatasets()},
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:false,
+      interaction:{mode:"nearest",intersect:false},
+      scales:{
+        x:{type:"time",time:{unit:"minute",tooltipFormat:"dd.MM.yyyy HH:mm:ss",displayFormats:{minute:"HH:mm:ss"}},
+           grid:{color:"#1a1f4012"},border:{color:"#e1e4f4"},ticks:{color:"#7b80ad",maxRotation:0}},
+        y:{grid:{color:"#1a1f4012"},border:{color:"#e1e4f4"},ticks:{color:"#7b80ad",callback:v=>v.toFixed(2)}},
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#ffffff",borderColor:"#e1e4f4",borderWidth:1,padding:12,
+          titleColor:"#171a33",bodyColor:"#4b5080",
+          boxPadding:4,usePointStyle:true,
+          callbacks:{
+            title:(it)=>{ const d=new Date(it[0].parsed.x);
+              return d.toLocaleDateString("ru-RU")+" "+d.toLocaleTimeString("ru-RU"); },
+            label:(it)=>` ${it.dataset.label}: ${fmt(it.parsed.y)} ₽`,
+          }
+        },
+        zoom:{
+          pan:{enabled:true,mode:"x"},
+          zoom:{wheel:{enabled:true},pinch:{enabled:true},mode:"x"},
+        }
+      }
+    }
+  });
+}
+function updateChart(){
+  if(!chart) return;
+  chart.data.datasets=chartDatasets();
+  // применяем фильтр по времени (окно «с выбранного момента до сейчас»)
+  const f=state.filter;
+  if(f.applied && (f.date || f.time)){
+    const dpart=f.date || new Date().toISOString().slice(0,10);
+    const tpart=f.time || "00:00:00";
+    let t=new Date(`${dpart}T${tpart}`).getTime();
+    if(!isNaN(t)){
+      // не даём окну «схлопнуться» в точку сейчас
+      t=Math.min(t, Date.now()-1000);
+      chart.options.scales.x.min=t;
+      chart.options.scales.x.max=Date.now();
+    }
+  }else{
+    chart.options.scales.x.min=undefined; chart.options.scales.x.max=undefined;
+  }
+  chart.update("none");
+}
+function renderLegend(){
+  const leg=$("#legend");
+  leg.innerHTML=SOURCES.filter(s=>pairVisible(s)).map(s=>{
+    const off=state.chartOn[s.id]===false;
+    const fav=state.favorites[s.id]?"fav":"";
+    return `<span class="leg ${off?'off':''} ${fav}" data-id="${s.id}">
+      ${iconSVG(s.id,18)}
+      <span class="sw" style="background:${state.colors[s.id]}"></span>${s.name}
+      <span class="star" data-star="${s.id}" title="В избранное">★</span></span>`;
+  }).join("");
+}
+
+/* ============================================================
+   7. ОБЩИЙ РЕНДЕР
+   ============================================================ */
+function render(){
+  renderCards();
+  renderSummary();
+  updateChart();
+  renderLegend();
+  initSortable();
+  const upd=$("#clockUpd"); if(upd) upd.textContent=fmtTime(lastRefresh||Date.now());
+}
+
+// текущие дата/время в форматах инпутов
+function nowStrings(){
+  const d=new Date(), p=n=>String(n).padStart(2,"0");
+  return { d:`${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`,
+           t:`${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}` };
+}
+// синхронизируем поля фильтра с текущим временем, пока их не изменил пользователь
+function syncFilterClock(){
+  if(state.filter.touched) return;
+  const {d,t}=nowStrings();
+  const fd=$("#fDate"), ft=$("#fTime");
+  if(fd && document.activeElement!==fd) fd.value=d;
+  if(ft && document.activeElement!==ft) ft.value=t;
+}
+
+// посекундный тикер: живые часы в шапке + свежесть/время на карточках
+function tickTimes(){
+  if(!running) return;
+  const now=$("#clockNow"); if(now) now.textContent=new Date().toLocaleTimeString("ru-RU");
+  syncFilterClock();
+  SOURCES.forEach(s=>{
+    const el=document.querySelector(`[data-fresh="${s.id}"]`); if(!el) return;
+    const L=live[s.id], f=freshLabel(L.updated);
+    el.textContent=`● ${fmtTime(L.updated)} · ${f.t}`;
+    el.classList.toggle("stale", f.stale);
+  });
+}
+setInterval(tickTimes,1000);
+
+/* ============================================================
+   8. УПРАВЛЕНИЕ / СОБЫТИЯ
+   ============================================================ */
+// режим покупка/продажа
+$("#modeSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  state.mode=b.dataset.mode; saveState();
+  $$("#modeSeg button").forEach(x=>x.classList.toggle("on",x===b));
+  render();
+});
+// валютная пара
+$("#pairSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  state.pair=b.dataset.pair; saveState();
+  $$("#pairSeg button").forEach(x=>x.classList.toggle("on",x===b));
+  render();
+});
+// выход
+$("#logoutBtn").addEventListener("click",()=>location.reload());
+
+// легенда: клик по источнику — вкл/выкл, клик по звезде — избранное
+$("#legend").addEventListener("click",e=>{
+  const star=e.target.closest("[data-star]");
+  if(star){ e.stopPropagation();
+    const id=star.dataset.star; state.favorites[id]=!state.favorites[id]; saveState(); renderLegend(); return; }
+  const leg=e.target.closest(".leg"); if(!leg) return;
+  const id=leg.dataset.id; state.chartOn[id]=state.chartOn[id]===false; saveState();
+  renderLegend(); updateChart();
+});
+$("#selAll").onclick =()=>{ SOURCES.forEach(s=>state.chartOn[s.id]=true);  saveState(); renderLegend(); updateChart(); };
+$("#selNone").onclick=()=>{ SOURCES.forEach(s=>state.chartOn[s.id]=false); saveState(); renderLegend(); updateChart(); };
+$("#selFav").onclick =()=>{ SOURCES.forEach(s=>state.chartOn[s.id]=!!state.favorites[s.id]); saveState(); renderLegend(); updateChart(); };
+$("#zoomReset").onclick=()=>{ chart&&chart.resetZoom(); };
+
+// фильтры
+// как только пользователь трогает поля даты/времени — фиксируем их (перестаём тикать)
+function markFilterTouched(){ if(!state.filter.touched){ state.filter.touched=true; saveState(); } }
+["#fDate","#fTime"].forEach(sel=>{
+  const el=$(sel);
+  el.addEventListener("focus",markFilterTouched);
+  el.addEventListener("input",markFilterTouched);
+});
+$("#applyF").onclick=()=>{
+  state.filter={date:$("#fDate").value,time:$("#fTime").value,activeOnly:$("#fActive").checked,applied:true,touched:true};
+  saveState(); render();
+};
+$("#resetF").onclick=()=>{
+  state.filter={date:"",time:"",activeOnly:false,applied:false,touched:false};
+  $("#fActive").checked=false;
+  syncFilterClock();      // вернуть живые часы в поля
+  saveState(); render();
+};
+// плавающая кнопка «вернуться к фильтрам»
+const toF=$("#toFilters");
+window.addEventListener("scroll",()=>{
+  if($("#app").style.display==="none") return;
+  toF.style.display = window.scrollY>520 ? "flex":"none";
+});
+toF.onclick=()=>$("#filtersAnchor").scrollIntoView({behavior:"smooth",block:"start"});
+
+/* ============================================================
+   9. ВОССТАНОВЛЕНИЕ UI ИЗ СОХРАНЁННОГО СОСТОЯНИЯ
+   ============================================================ */
+function restoreUI(){
+  $$("#modeSeg button").forEach(b=>b.classList.toggle("on",b.dataset.mode===state.mode));
+  $$("#pairSeg button").forEach(b=>b.classList.toggle("on",b.dataset.pair===state.pair));
+  if(state.filter){
+    $("#fActive").checked=!!state.filter.activeOnly;
+    if(state.filter.touched){
+      $("#fDate").value=state.filter.date||"";
+      $("#fTime").value=state.filter.time||"";
+    }else{
+      syncFilterClock(); // показываем текущее время, оно будет тикать
+    }
+  }
+}
+
+/* ============================================================
+   10. ЗАПУСК ДАШБОРДА + ЦИКЛ ОБНОВЛЕНИЯ (5–10 с)
+   ============================================================ */
+let running=false;
+function startDashboard(){
+  if(running) return; running=true;
+  $("#login").style.display="none";
+  $("#app").style.display="block";
+  restoreUI();
+  buildChart();
+  render();
+  refreshAll(); // первый цикл (вкл. реальный курс ЦБ)
+  const loop=()=>{ refreshAll(); setTimeout(loop, rnd(CFG.refreshMinMs,CFG.refreshMaxMs)); };
+  setTimeout(loop, rnd(CFG.refreshMinMs,CFG.refreshMaxMs));
+}
+
+/* ============================================================
+   11. ВХОД
+   ============================================================ */
+const pin=$("#pin"), card=$("#loginCard"), hint=$("#pinHint");
+// фильтруем ввод: только цифры 0–8, «9» и прочее не попадают в поле
+pin.addEventListener("input",()=>{
+  // цифры 9 и прочие символы просто не попадают в поле
+  const cleaned=[...pin.value].filter(c=>CFG.allowedDigits.includes(c)).join("");
+  if(cleaned!==pin.value) pin.value=cleaned;
+  hint.textContent="";
+  card.classList.remove("err"); hint.classList.remove("bad");
+});
+pin.addEventListener("keydown",e=>{ if(e.key==="Enter") tryLogin(); });
+$("#loginBtn").addEventListener("click",tryLogin);
+
+async function tryLogin(){
+  const h=await sha256(pin.value);
+  if(h===CFG.passwordHash){
+    startDashboard();
+  }else{
+    card.classList.add("err");
+    hint.classList.add("bad");
+    hint.textContent="Неверный пароль";
+    pin.select();
+  }
+}
+pin.focus();
+</script>
+</body>
+</html>
