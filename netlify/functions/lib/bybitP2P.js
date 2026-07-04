@@ -1,22 +1,20 @@
 // Источник: Bybit P2P — реальные курсы USDT/RUB (покупка/продажа).
-// ВНИМАНИЕ: НЕофициальный внутренний эндпоинт p2p-раздела Bybit (api2.bybit.com).
-// Публичный, но не гарантируется биржей; возможна гео-блокировка из ЦОД.
-// Сбой изолируется на уровне агрегатора.
-//
-// side в API Bybit OTC: "0" и "1". Соответствие «покупка/продажа» на разных
-// площадках трактуется по-разному. Если в интерфейсе покупка/продажа окажутся
-// перепутаны — просто поменяйте местами аргументы в getBybit() ниже.
+// НЕофициальный внутренний эндпоинт p2p-раздела Bybit (api2.bybit.com).
+// Публичный, но не гарантируется биржей; данные по сторонам сделки бывают
+// «шумными», поэтому агрегатор дополнительно проверяет вменяемость спреда.
 const { fetchJSON } = require("./util");
 
 const URL = "https://api2.bybit.com/fiat/otc/item/online";
 
-async function side(sideCode) {
+// side "1" — тейкер ПОКУПАЕТ USDT (берём лучшую = наименьшую цену)
+// side "0" — тейкер ПРОДАЁТ USDT  (берём лучшую = наибольшую цену)
+async function bestSide(sideCode) {
   const body = {
     tokenId: "USDT",
     currencyId: "RUB",
     payment: [],
     side: sideCode,
-    size: "8",
+    size: "10",
     page: "1",
     amount: "",
     authMaker: false,
@@ -29,7 +27,10 @@ async function side(sideCode) {
       headers: {
         "content-type": "application/json",
         accept: "application/json",
-        "user-agent": "Mozilla/5.0 (compatible; RateMonitor/1.0)",
+        origin: "https://www.bybit.com",
+        referer: "https://www.bybit.com/",
+        "user-agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
       },
       body: JSON.stringify(body),
     },
@@ -41,13 +42,11 @@ async function side(sideCode) {
     .filter((n) => Number.isFinite(n))
     .sort((a, b) => a - b);
   if (!prices.length) throw new Error("Bybit P2P: пустой ответ");
-  return prices[Math.floor(prices.length / 2)];
+  return sideCode === "1" ? prices[0] : prices[prices.length - 1];
 }
 
 async function getBybit() {
-  // side "1" — цена, по которой пользователь покупает USDT
-  // side "0" — цена, по которой пользователь продаёт USDT
-  const [buy, sell] = await Promise.all([side("1"), side("0")]);
+  const [buy, sell] = await Promise.all([bestSide("1"), bestSide("0")]);
   return { buy, sell };
 }
 module.exports = { getBybit };
