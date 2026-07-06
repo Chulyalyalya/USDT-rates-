@@ -14,11 +14,11 @@ const { getUsdRub } = require("./lib/fx");           // open.er-api
 const { getUsdRubFun } = require("./lib/fxfun");     // exchangerate.fun
 const { getUsdtRub } = require("./lib/coingecko");
 const { getMarket } = require("./lib/twelvedata");
+const { getCoinbaseUsdtRub } = require("./lib/coinbase");
 
-// Остаются демо (нет публичного API к рублю): tokenspot, coinbase, cryptocom, gate, mex
+// Остаются демо (нет публичного API к рублю): tokenspot, cryptocom, gate, mex
 const DEMO = [
   { id: "tokenspot", pair: "USDT", off: +0.18, kind: "both", spread: 0.30 },
-  { id: "coinbase",  pair: "USDT", off: +0.55, kind: "both", spread: 0.40 },
   { id: "cryptocom", pair: "USDT", off: +0.38, kind: "both", spread: 0.35 },
   { id: "gate",      pair: "USDT", off: +0.28, kind: "both", spread: 0.30 },
   { id: "mex",       pair: "USDT", off: +0.44, kind: "both", spread: 0.33 },
@@ -60,13 +60,14 @@ exports.handler = async () => {
 
   const sources = {};
 
-  const [cbrR, bybR, fxR, funR, cgR, tdR] = await Promise.allSettled([
+  const [cbrR, bybR, fxR, funR, cgR, tdR, cbR] = await Promise.allSettled([
     getCBR(),
     getBybit(),
     getUsdRub(),      // open.er-api USD/RUB
     getUsdRubFun(),   // exchangerate.fun USD/RUB
     getUsdtRub(),     // CoinGecko USDT/RUB
     getMarket(),      // Twelve Data USD/RUB + USDT/RUB
+    getCoinbaseUsdtRub(), // Coinbase USDT/RUB
   ]);
 
   // --- ЦБ РФ (официальный USD/RUB) ---
@@ -85,6 +86,7 @@ exports.handler = async () => {
   const tdUsd = td && td.usd ? td.usd : null;
   const cgUsdt = cgR.status === "fulfilled" ? cgR.value : null;
   const tdUsdt = td && td.usdt ? td.usdt : null;
+  const cbUsdt = cbR.status === "fulfilled" ? cbR.value : null;
 
   const usdMarket = tdUsd || erUsd || funUsd || cbr || 77.9;
   const usdtMarket = tdUsdt || cgUsdt || null;
@@ -114,6 +116,9 @@ exports.handler = async () => {
     const anchor = d.pair === "USDT" ? usdtAnchor : usdAnchor;
     sources[d.id] = demoSource(anchor, d.off, d.spread, d.kind);
   }
+
+  // --- Coinbase: реальный USDT/RUB (иначе демо) ---
+  sources.coinbase = cbUsdt ? real1(cbUsdt) : demoSource(usdtAnchor, +0.55, 0.40, "both");
 
   const payload = {
     ts: now,
