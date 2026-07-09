@@ -134,7 +134,7 @@ button{font-family:inherit;cursor:pointer}
 .card.dead{background:#fbfbfc}
 .card-head{display:flex;align-items:center;gap:9px}
 .card .name{font-weight:600;font-size:15px;color:var(--txt)}
-.src-ico{flex:0 0 auto;display:block;border-radius:7px;width:26px;height:26px}
+.src-ico{flex:0 0 auto;display:block;border-radius:8px;width:34px;height:34px}
 .leg-ico{width:28px;height:28px;border-radius:50%;border:2px solid #ccc;overflow:hidden;flex:0 0 auto;display:grid;place-items:center;background:#fff;margin-right:1px}
 .leg-ico img{width:100%;height:100%;object-fit:contain}
 .card .pair{margin-left:auto;font-family:var(--num);font-size:11px;color:var(--txt-3);font-weight:500}
@@ -622,8 +622,8 @@ function cardHTML(s){
   if(s.id==="cbr"){
     parts.push(`<span class="badge official">Официальный</span>`);
   } else {
-    if(s.kind==="ref") parts.push(`<span class="badge ref">Справочный</span>`);
     if(L.real===false) parts.push(`<span class="badge demo">demo</span>`);
+    else if(s.kind==="ref") parts.push(`<span class="badge ref">Справочный</span>`);
     if(val!=null && cbr){
       const dp=(val-cbr)/cbr*100;
       const cls=dp>0?"pos":(dp<0?"neg":"");
@@ -824,7 +824,7 @@ function renderLegend(){
     const off=state.chartOn[s.id]===false;
     const fav=state.favorites[s.id]?"fav":"";
     return `<span class="leg ${off?'off':''} ${fav}" data-id="${s.id}">
-      ${iconSVG(s.id,32)}${s.name}
+      ${iconSVG(s.id,34)}${s.name}
       <span class="star" data-star="${s.id}" title="В избранное">★</span></span>`;
   }).join("");
 }
